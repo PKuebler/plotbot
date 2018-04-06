@@ -63,8 +63,6 @@ boolean serialInputComplete = false;
 // =============================
 long currentX = 0;
 long currentY = 0;
-long stepsM1 = 0;
-long stepsM2 = 0;
 int penState = PEN_DOWN;
 long m2s = 0;
 
@@ -82,7 +80,7 @@ typedef struct {
 } command;
 
 #define MAX_COMMANDS 10
-command cmdBuffer[MAX_COMMANDS];
+command cmdBuffer = {};
 
 // =============================
 // Calc Kable length
@@ -111,9 +109,7 @@ void setup() {
   // compute starting pos
   currentX = START_X;
   currentY = START_Y;
-  stepsM1 = computeA(START_X, START_Y) / m2s;
-  stepsM2 = computeB(START_X, START_Y) / m2s;
-
+  
   // Init Stepper
   AFMS.begin();
 
@@ -220,14 +216,14 @@ void parseCommand(String command) {
   Serial.println(bD);
   
   // add to array
-	cmdBuffer[0].cmd = cmd;
-	cmdBuffer[0].x = x;
-	cmdBuffer[0].y = y;
-	//cmdBuffer[0].e = e;
-	cmdBuffer[0].targetM1 = a;
-  cmdBuffer[0].directionM1 = aD;
-	cmdBuffer[0].targetM2 = b;
-  cmdBuffer[0].directionM2 = bD;
+	cmdBuffer.cmd = cmd;
+	cmdBuffer.x = x;
+	cmdBuffer.y = y;
+	//cmdBuffer.e = e;
+	cmdBuffer.targetM1 = a;
+  cmdBuffer.directionM1 = aD;
+	cmdBuffer.targetM2 = b;
+  cmdBuffer.directionM2 = bD;
 }
 
 // =============================
@@ -256,12 +252,12 @@ void loop () {
 
     parseCommand(serialInputString);
 
-    Serial.println(cmdBuffer[0].targetM1);
-    Serial.println(cmdBuffer[0].targetM2);
+    Serial.println(cmdBuffer.targetM1);
+    Serial.println(cmdBuffer.targetM2);
 
     // Get target values
-    int targetM1 = cmdBuffer[0].targetM1;
-    int targetM2 = cmdBuffer[0].targetM2;
+    int targetM1 = cmdBuffer.targetM1;
+    int targetM2 = cmdBuffer.targetM2;
     // default base value
     int basisValue = targetM2;
     
@@ -282,22 +278,22 @@ void loop () {
         Serial.print("Do ");
         Serial.print(stepsPerStep);
         Serial.println(" Steps per one m1 step");
-        stepperOne->step(1, cmdBuffer[0].directionM1, SINGLE);
-        stepperTwo->step(stepsPerStep, cmdBuffer[0].directionM2, SINGLE);
+        stepperOne->step(1, cmdBuffer.directionM1, SINGLE);
+        stepperTwo->step(stepsPerStep, cmdBuffer.directionM2, SINGLE);
       } else if (basisValue == targetM2) {
         // Do x Steps on M1 per one step on M2
         Serial.print("Do ");
         Serial.print(stepsPerStep);
         Serial.println(" Steps per one m2 step");
-        stepperTwo->step(1, cmdBuffer[0].directionM2, SINGLE);
-        stepperOne->step(stepsPerStep, cmdBuffer[0].directionM1, SINGLE);
+        stepperTwo->step(1, cmdBuffer.directionM2, SINGLE);
+        stepperOne->step(stepsPerStep, cmdBuffer.directionM1, SINGLE);
       } else {
         Serial.println("Error: Base value was not matched.");
       }
     }
 
-    currentX = cmdBuffer[0].x;
-    currentY = cmdBuffer[0].y;
+    currentX = cmdBuffer.x;
+    currentY = cmdBuffer.y;
     Serial.println("finish");
     serialInputString = "";
     serialInputComplete = false;
