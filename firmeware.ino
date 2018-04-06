@@ -9,7 +9,6 @@
 // Distance
 // =============================
 #define AXIS_DISTANCE 6300 // mm = 150cm
-
 #define START_X 3150 // 75cm
 #define START_Y 3150 // 75cm
 
@@ -50,7 +49,6 @@
 // Set Motors
 // =============================
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
-
 Adafruit_StepperMotor *stepperOne = AFMS.getStepper(200, 1);
 Adafruit_StepperMotor *stepperTwo = AFMS.getStepper(200, 2);
 
@@ -99,15 +97,6 @@ int computeB(long x, long y) {
   return sqrt((distanceX * distanceX) + y * y);
 }
 
-int ggt(int x, int y) {
-  int c;
-  if (x < 0) x = -x;
-  if (y < 0) y = -y;
-  while (y != 0) {
-    c = x % y; x = y; y = c;
-  }
-  return x;
-}
 
 // =============================
 // Setup
@@ -270,48 +259,46 @@ void loop () {
     Serial.println(cmdBuffer[0].targetM1);
     Serial.println(cmdBuffer[0].targetM2);
 
-    int a = cmdBuffer[0].targetM1;
-    int b = cmdBuffer[0].targetM2;
-    boolean basis = false; // false == b 
-    int basisValue = b;
+    // Get target values
+    int targetM1 = cmdBuffer[0].targetM1;
+    int targetM2 = cmdBuffer[0].targetM2;
+    // default base value
+    int basisValue = targetM2;
     
-    double g = a / b;
-    
-    if (g < 1) {
-      g = b / a;
-      basis = true;
-      basisValue = a;
+    // calculate stepsPerStep
+    double stepsPerStep = targetM1 / targetM2;
+    if (stepsPerStep < 1) {
+      // invert and set base to a
+      stepsPerStep = 1 / stepsPerStep;
+      basisValue = targetM1;
     }
+
     
-    Serial.println(g);
-    
+    Serial.println(stepsPerStep);
+    // start drawing
     for (int i = 0; i < basisValue; i++) {
-       
-      if (!basis) {
-        Serial.print(g);
-        Serial.println(" Step per b");
-        // one step b
-        stepperTwo->step(1, cmdBuffer[0].directionM2, SINGLE);
-        // a/b steps a 
-        stepperOne->step(g, cmdBuffer[0].directionM1, SINGLE);
-      } else {
-        Serial.print(g);
-        Serial.println(" Step per a");
-        // one step a 
+      if (basisValue == targetM1) {
+        // Do x Steps on M2 per one step on M1
+        Serial.print("Do ");
+        Serial.print(stepsPerStep);
+        Serial.println(" Steps per one m1 step");
         stepperOne->step(1, cmdBuffer[0].directionM1, SINGLE);
-        // b/a steps b
-        stepperTwo->step(g, cmdBuffer[0].directionM2, SINGLE);
+        stepperTwo->step(stepsPerStep, cmdBuffer[0].directionM2, SINGLE);
+      } else if (basisValue == targetM2) {
+        // Do x Steps on M1 per one step on M2
+        Serial.print("Do ");
+        Serial.print(stepsPerStep);
+        Serial.println(" Steps per one m2 step");
+        stepperTwo->step(1, cmdBuffer[0].directionM2, SINGLE);
+        stepperOne->step(stepsPerStep, cmdBuffer[0].directionM1, SINGLE);
+      } else {
+        Serial.println("Error: Base value was not matched.");
       }
     }
 
-    /*
-    for (int i = 0; i < g; i++) {
-      stepperOne->step(a, cmdBuffer[0].directionM1, SINGLE);
-      stepperTwo->step(b, cmdBuffer[0].directionM2, SINGLE);
-    }
-    */
     currentX = cmdBuffer[0].x;
     currentY = cmdBuffer[0].y;
+    Serial.println("finish");
     serialInputString = "";
     serialInputComplete = false;
   }
