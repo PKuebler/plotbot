@@ -95,7 +95,6 @@ int computeB(long x, long y) {
   return sqrt((distanceX * distanceX) + y * y);
 }
 
-
 // =============================
 // Setup
 // =============================
@@ -115,9 +114,6 @@ void setup() {
 
   stepperOne->setSpeed(10);  // 10 rpm
   stepperTwo->setSpeed(10);  // 10 rpm
-
-  // Init Servo
-  // Move Pen UP
 }
 
 // =============================
@@ -138,19 +134,25 @@ void parseCommand(String command) {
   char prop; // G / X / Y
   String value;
 
+  char c = "";
   for (long i = 0; i < length; i++) {
-    char c = command.charAt(i);
+    c = command.charAt(i);
 
     if (c == ' ') {
       // next
-      if (prop == 'G') {
-        cmd = value.toInt();
-      } else if (prop == 'X') {
-        x = value.toInt();
-      } else if (prop == 'Y') {
-        y = value.toInt();
-      } else if (prop == 'E') {
-        e = value.toInt();
+      switch(prop) {
+        case 'G':
+          cmd = value.toInt();  
+        break;
+        case 'X':
+          x = value.toInt();
+        break;
+        case 'Y':
+          y = value.toInt();
+        break;
+        case 'E':
+          e = value.toInt();
+        break;
       }
       value = "";
     } else if (c == 'G' || c == 'X' || c == 'Y' || c == 'E') {
@@ -166,7 +168,7 @@ void parseCommand(String command) {
     return;
   }
 
-  // Min / Max
+  // reset min / max if nesseccary
   if (x < MIN_X) x = MIN_X;
   if (y < MIN_Y) y = MIN_Y;
   if (x > MAX_X) x = MAX_X;
@@ -215,11 +217,10 @@ void parseCommand(String command) {
   Serial.print(" steps ");
   Serial.println(bD);
   
-  // add to array
+  // add to struct
 	cmdBuffer.cmd = cmd;
 	cmdBuffer.x = x;
 	cmdBuffer.y = y;
-	//cmdBuffer.e = e;
 	cmdBuffer.targetM1 = a;
   cmdBuffer.directionM1 = aD;
 	cmdBuffer.targetM2 = b;
@@ -269,7 +270,6 @@ void loop () {
       basisValue = targetM1;
     }
 
-    
     Serial.println(stepsPerStep);
     // start drawing
     for (int i = 0; i < basisValue; i++) {
