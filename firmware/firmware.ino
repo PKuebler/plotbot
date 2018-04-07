@@ -43,7 +43,7 @@
 // =============================
 #define PULLEY_R 96
 #define PI 3.14159
-#define STEPS_PER_ROT 200
+#define STEPS_PER_ROT 300
 
 // =============================
 // Set Motors
@@ -131,27 +131,27 @@ void drawLineToTargetPoint(int stepsPerStep, int basisValue, float restPerStep, 
       targetSteps = targetSteps + 1;
     }
 
-    Serial.print("Current Rest ");
-    Serial.println(currentRest);
+    //Serial.print("Current Rest ");
+    //Serial.println(currentRest);
 
     if (basisValue == cmdBuffer.targetM1Steps) {
       // Debug output
-      Serial.print("Do ");
-      Serial.print(targetSteps);
-      Serial.println(" Steps per one M1 step");
+      //Serial.print("Do ");
+      //Serial.print(targetSteps);
+      //Serial.println(" Steps per one M1 step");
 
       // Do x Steps on M2 per one step on M1
-      stepperOne->step(1, cmdBuffer.directionM1, SINGLE);
-      stepperTwo->step(targetSteps, cmdBuffer.directionM2, SINGLE);
+      stepperTwo->step(1, cmdBuffer.directionM1, SINGLE);
+      stepperOne->step(targetSteps, cmdBuffer.directionM2, SINGLE);
     } else if (basisValue == cmdBuffer.targetM2Steps) {
       // Debug output
-      Serial.print("Do ");
-      Serial.print(targetSteps);
-      Serial.println(" Steps per one M2 step");
+      //Serial.print("Do ");
+      //Serial.print(targetSteps);
+      //Serial.println(" Steps per one M2 step");
 
       // Do x Steps on M1 per one step on M2
-      stepperTwo->step(1, cmdBuffer.directionM2, SINGLE);
-      stepperOne->step(targetSteps, cmdBuffer.directionM1, SINGLE);
+      stepperOne->step(1, cmdBuffer.directionM2, SINGLE);
+      stepperTwo->step(targetSteps, cmdBuffer.directionM1, SINGLE);
     } else {
       // Unexpected error
       Serial.println("Error: drawLineToTargetPoint: Base value is not matched.");
@@ -279,12 +279,23 @@ void parseCommand(String command) {
   long targetM1Steps = targetM1 / m2s;
   long targetM2Steps = targetM2 / m2s;
 
-  targetM1Steps = targetM1Steps - targetM1OldSteps;
-  targetM2Steps = targetM2Steps - targetM2OldSteps;
-
+  targetM1Steps = targetM1OldSteps - targetM1Steps;
+  targetM2Steps = targetM2OldSteps - targetM2Steps;
+  
   // Direction
   int directionM1 = BACKWARD;
   int directionM2 = BACKWARD;
+
+  // Debug output
+  Serial.print("Moving m1 ");
+  Serial.print(targetM1Steps);
+  Serial.print(" steps ");
+  Serial.println(directionM1 == 1 ? "längen" : "kürzen");
+
+  Serial.print("Moving m2 ");
+  Serial.print(targetM2Steps);
+  Serial.print(" steps ");
+  Serial.println(directionM2 == 1 ? "längen" : "kürzen");
 
   if (targetM1Steps < 0) {
     targetM1Steps = -targetM1Steps;
@@ -296,15 +307,15 @@ void parseCommand(String command) {
   }
 
   // Debug output
-  Serial.print("Moving m1 to ");
+  Serial.print("Moving m1 ");
   Serial.print(targetM1Steps);
   Serial.print(" steps ");
-  Serial.println(directionM1);
+  Serial.println(directionM1 == 1 ? "längen" : "kürzen");
 
-  Serial.print("Moving b ");
+  Serial.print("Moving m2 ");
   Serial.print(targetM2Steps);
   Serial.print(" steps ");
-  Serial.println(directionM2);
+  Serial.println(directionM2 == 1 ? "längen" : "kürzen");
   
   // add to struct
 	cmdBuffer.cmd = cmd;
