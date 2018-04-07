@@ -184,16 +184,16 @@ void parseCommand(String command) {
   Serial.print(", e: ");
   Serial.println(e);
 
-  // Compute current targetM1-steps and targetM2-steps
-  long aOld = computeA(currentX, currentY) / m2s;
-  long bOld = computeB(currentX, currentY) / m2s;
+  // Compute current (old) targetM1-steps and targetM2-steps
+  long targetM1Old = computeA(currentX, currentY) / m2s;
+  long targetM2Old = computeB(currentX, currentY) / m2s;
 
   // Compute new targetM1-steps and targetM2-steps
   long targetM1 = computeA(x, y) / m2s;
   long targetM2 = computeB(x, y) / m2s;
 
-  targetM1 = targetM1 - aOld;
-  targetM2 = targetM2 - bOld;
+  targetM1 = targetM1 - targetM1Old;
+  targetM2 = targetM2 - targetM2Old;
 
   // Direction
   int directionM1 = FORWARD;
