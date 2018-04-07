@@ -95,6 +95,26 @@ int computeB(long x, long y) {
   return sqrt((distanceX * distanceX) + y * y);
 }
 
+float getRestPerBasisStep(int basisValue, long stepsPerStep, int targetM1Steps, int targetM2Steps) {
+   float rest = 0;
+    if (basisValue == targetM1Steps) {
+      rest = targetM2Steps - (stepsPerStep * basisValue);
+
+      // Debug output
+      Serial.print("Rest: ");
+      Serial.println(rest);
+    } else if (basisValue == targetM2Steps) {
+      rest = targetM1Steps - (stepsPerStep * basisValue);
+      
+      Serial.print("Rest: ");
+      Serial.println(rest);
+    } else {
+      Serial.println("Error: getRestPerBasisStep: Base value is not matched.");
+    }
+
+    return rest / basisValue;
+}
+
 // =============================
 // Setup
 // =============================
@@ -281,20 +301,7 @@ void loop () {
     Serial.println(stepsPerStep);
 
     // calculate rest
-    float rest = 0;
-    if (basisValue == targetM1Steps) {
-      rest = targetM2Steps - (stepsPerStep * basisValue);
-
-      Serial.print("Rest: ");
-      Serial.println(rest);
-    } else if (basisValue == targetM2Steps) {
-      rest = targetM1Steps - (stepsPerStep * basisValue);
-      
-      Serial.print("Rest: ");
-      Serial.println(rest);
-    }
-
-    rest = rest / basisValue;
+    rest = getRestPerBasisStep()
 
     // start drawing
     float currentRest = 0;
