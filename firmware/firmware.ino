@@ -184,47 +184,49 @@ void parseCommand(String command) {
   Serial.print(", e: ");
   Serial.println(e);
 
-  // Compute current a and b
+  // Compute current targetM1-steps and targetM2-steps
   long aOld = computeA(currentX, currentY) / m2s;
   long bOld = computeB(currentX, currentY) / m2s;
 
-  // Compute new a and b
-  long a = computeA(x, y) / m2s;
-  long b = computeB(x, y) / m2s;
+  // Compute new targetM1-steps and targetM2-steps
+  long targetM1 = computeA(x, y) / m2s;
+  long targetM2 = computeB(x, y) / m2s;
 
-  a = a - aOld;
-  b = b - bOld;
+  targetM1 = targetM1 - aOld;
+  targetM2 = targetM2 - bOld;
 
   // Direction
-  int aD = FORWARD;
-  int bD = BACKWARD;
-  if (a < 0) {
-    a = -a;
-    aD = BACKWARD;
+  int directionM1 = FORWARD;
+  int directionM2 = BACKWARD;
+
+  if (targetM1 < 0) {
+    targetM1 = -targetM1;
+    directionM1 = BACKWARD;
   }
-  if (b < 0) {
-    b = -b;
-    bD = FORWARD;
+  if (targetM2 < 0) {
+    targetM2 = -targetM2;
+    directionM2 = FORWARD;
   }
 
-  Serial.print("Moving a ");
-  Serial.print(a);
+  // Debug output
+  Serial.print("Moving m1 to ");
+  Serial.print(targetM1);
   Serial.print(" steps ");
-  Serial.println(aD);
+  Serial.println(directionM1);
 
   Serial.print("Moving b ");
-  Serial.print(b);
+  Serial.print(targetM2);
   Serial.print(" steps ");
-  Serial.println(bD);
+  Serial.println(directionM2);
   
   // add to struct
 	cmdBuffer.cmd = cmd;
 	cmdBuffer.x = x;
 	cmdBuffer.y = y;
-	cmdBuffer.targetM1 = a;
-  cmdBuffer.directionM1 = aD;
-	cmdBuffer.targetM2 = b;
-  cmdBuffer.directionM2 = bD;
+	cmdBuffer.targetM1 = targetM1;
+  cmdBuffer.directionM1 = directionM1;
+	cmdBuffer.targetM2 = targetM2;
+  cmdBuffer.directionM2 = directionM2;
 }
 
 // =============================
@@ -265,7 +267,7 @@ void loop () {
     // calculate stepsPerStep
     long stepsPerStep = targetM1 / targetM2;
     if (stepsPerStep < 1) {
-      // invert and set base to a
+      // invert and set base to targetM1
       stepsPerStep = targetM2 / targetM1; // 1 / stepsPerStep;
       basisValue = targetM1;
     }
@@ -311,21 +313,26 @@ void loop () {
       }
 
       if (basisValue == targetM1) {
-        // Do x Steps on M2 per one step on M1
+        // Debug output
         Serial.print("Do ");
         Serial.print(stepsPerStep + currentRestStep);
         Serial.println(" Steps per one m1 step");
+
+        // Do x Steps on M2 per one step on M1
         stepperOne->step(1, cmdBuffer.directionM1, SINGLE);
         stepperTwo->step(stepsPerStep + currentRestStep, cmdBuffer.directionM2, SINGLE);
       } else if (basisValue == targetM2) {
-        // Do x Steps on M1 per one step on M2
+        // Debug output
         Serial.print("Do ");
         Serial.print(stepsPerStep + currentRestStep);
         Serial.println(" Steps per one m2 step");
+
+        // Do x Steps on M1 per one step on M2
         stepperTwo->step(1, cmdBuffer.directionM2, SINGLE);
         stepperOne->step(stepsPerStep + currentRestStep, cmdBuffer.directionM1, SINGLE);
       } else {
-        Serial.println("Error: Base value was not matched.");
+        // Unexpected error
+        Serial.println("Error: Base value is not matched.");
       }
     }
 
