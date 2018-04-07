@@ -266,7 +266,7 @@ void loop () {
     double stepsPerStep = targetM1 / targetM2;
     if (stepsPerStep < 1) {
       // invert and set base to a
-      stepsPerStep = 1 / stepsPerStep;
+      stepsPerStep = targetM2 / targetM1; // 1 / stepsPerStep;
       basisValue = targetM1;
     }
 
