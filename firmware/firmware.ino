@@ -73,8 +73,8 @@ typedef struct {
   int cmd;
   long x;
   long y;
-  long targetM1;
-  long targetM2;
+  long targetM1Steps;
+  long targetM2Steps;
   long directionM1;
   long directionM2;
 } command;
@@ -110,9 +110,59 @@ float getRestPerBasisStep(int basisValue, long stepsPerStep, int targetM1Steps, 
       Serial.println(rest);
     } else {
       Serial.println("Error: getRestPerBasisStep: Base value is not matched.");
+			return;
     }
 
     return rest / basisValue;
+}
+
+void drawLineToTargetPoint(int stepsPerStep, int basisValue, float restPerStep, command cmdBuffer) {
+  // start drawing
+  float currentRest = 0;
+  int targetSteps = stepsPerStep
+
+  for (int i = 0; i < basisValue; i++) {
+    // calculate current rest
+    currentRest = currentRest + restPerStep;
+
+    if (currentRest >= 1) {
+      // add one step if rest is larger than one
+      currentRest = 1 - currentRest;
+      targetSteps = targetSteps + 1;
+    }
+
+    Serial.print("Current Rest ");
+    Serial.println(currentRest);
+
+    if (basisValue == cmdBuffer.targetM1Steps) {
+      // Debug output
+      Serial.print("Do ");
+      Serial.print(targetSteps);
+      Serial.println(" Steps per one M1 step");
+
+      // Do x Steps on M2 per one step on M1
+      stepperOne->step(1, cmdBuffer.directionM1, SINGLE);
+      stepperTwo->step(targetSteps, cmdBuffer.directionM2, SINGLE);
+    } else if (basisValue == cmdBuffer.targetM2Steps) {
+      // Debug output
+      Serial.print("Do ");
+      Serial.print(targetSteps);
+      Serial.println(" Steps per one M2 step");
+
+      // Do x Steps on M1 per one step on M2
+      stepperTwo->step(1, cmdBuffer.directionM2, SINGLE);
+      stepperOne->step(targetSteps, cmdBuffer.directionM1, SINGLE);
+    } else {
+      // Unexpected error
+      Serial.println("Error: drawLineToTargetPoint: Base value is not matched.");
+			return;
+    }
+
+    // reset targetSteps
+    if (targetSteps != stepsPerStep) {
+      targetSteps = stepsPerStep;
+    }
+  }
 }
 
 // =============================
@@ -271,12 +321,14 @@ void serialEvent() {
 // =============================
 void loop () {
   if (serialInputComplete) {
+		// Debug ouput
     Serial.println(serialInputString);
 
     parseCommand(serialInputString);
 
+		// Debug ouput
     Serial.println(cmdBuffer.targetM1Steps);
-    Serial.println(cmdBuffer.targetM2);
+    Serial.println(cmdBuffer.targetM2Steps);
 
     // Get target values
     int targetM1Steps = cmdBuffer.targetM1Steps;
@@ -292,7 +344,7 @@ void loop () {
       basisValue = targetM1Steps;
     }
 
-    float restPerStep = getRestPerBasisStep()
+    float restPerStep = getRestPerBasisStep(basisValue, stepsPerStep, targetM1Steps, targetM2Steps);
 
     // Steps
     Serial.print("Steps Basis: ");
@@ -303,50 +355,7 @@ void loop () {
     Serial.println(stepsPerStep);
 
     // start drawing
-    float currentRest = 0;
-    int targetSteps = stepsPerStep
-
-    for (int i = 0; i < basisValue; i++) {
-      // calculate current rest
-      currentRest = currentRest + restPerStep;
-
-      if (currentRest >= 1) {
-        // add one step if rest is larger than one
-        currentRest = 1 - currentRest;
-        targetSteps = targetSteps + 1;
-      }
-
-      Serial.print("Current Rest ");
-      Serial.println(currentRest);
-
-      if (basisValue == targetM1Steps) {
-        // Debug output
-        Serial.print("Do ");
-        Serial.print(targetSteps);
-        Serial.println(" Steps per one M1 step");
-
-        // Do x Steps on M2 per one step on M1
-        stepperOne->step(1, cmdBuffer.directionM1, SINGLE);
-        stepperTwo->step(targetSteps, cmdBuffer.directionM2, SINGLE);
-      } else if (basisValue == targetM2Steps) {
-        // Debug output
-        Serial.print("Do ");
-        Serial.print(targetSteps);
-        Serial.println(" Steps per one M2 step");
-
-        // Do x Steps on M1 per one step on M2
-        stepperTwo->step(1, cmdBuffer.directionM2, SINGLE);
-        stepperOne->step(targetSteps, cmdBuffer.directionM1, SINGLE);
-      } else {
-        // Unexpected error
-        Serial.println("Error: Base value is not matched.");
-      }
-
-      // reset targetSteps
-      if (targetSteps != stepsPerStep) {
-        targetSteps = stepsPerStep;
-      }
-    }
+		drawLineToTargetPoint(stepsPerStep, basisValue, restPerStep, cmdBuffer);
 
     currentX = cmdBuffer.x;
     currentY = cmdBuffer.y;
