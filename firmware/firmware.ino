@@ -185,37 +185,37 @@ void parseCommand(String command) {
   Serial.println(e);
 
   // Compute current (old) targetM1-steps and targetM2-steps
-  long targetM1Old = computeA(currentX, currentY) / m2s;
-  long targetM2Old = computeB(currentX, currentY) / m2s;
+  long targetM1OldSteps = computeA(currentX, currentY) / m2s;
+  long targetM2OldSteps = computeB(currentX, currentY) / m2s;
 
   // Compute new targetM1-steps and targetM2-steps
-  long targetM1 = computeA(x, y) / m2s;
-  long targetM2 = computeB(x, y) / m2s;
+  long targetM1Steps = computeA(x, y) / m2s;
+  long targetM2Steps = computeB(x, y) / m2s;
 
-  targetM1 = targetM1 - targetM1Old;
-  targetM2 = targetM2 - targetM2Old;
+  targetM1Steps = targetM1Steps - targetM1OldSteps;
+  targetM2Steps = targetM2Steps - targetM2OldSteps;
 
   // Direction
   int directionM1 = FORWARD;
   int directionM2 = BACKWARD;
 
-  if (targetM1 < 0) {
-    targetM1 = -targetM1;
+  if (targetM1Steps < 0) {
+    targetM1Steps = -targetM1Steps;
     directionM1 = BACKWARD;
   }
-  if (targetM2 < 0) {
-    targetM2 = -targetM2;
+  if (targetM2Steps < 0) {
+    targetM2Steps = -targetM2Steps;
     directionM2 = FORWARD;
   }
 
   // Debug output
   Serial.print("Moving m1 to ");
-  Serial.print(targetM1);
+  Serial.print(targetM1Steps);
   Serial.print(" steps ");
   Serial.println(directionM1);
 
   Serial.print("Moving b ");
-  Serial.print(targetM2);
+  Serial.print(targetM2Steps);
   Serial.print(" steps ");
   Serial.println(directionM2);
   
@@ -223,9 +223,9 @@ void parseCommand(String command) {
 	cmdBuffer.cmd = cmd;
 	cmdBuffer.x = x;
 	cmdBuffer.y = y;
-	cmdBuffer.targetM1 = targetM1;
+	cmdBuffer.targetM1Steps = targetM1Steps;
   cmdBuffer.directionM1 = directionM1;
-	cmdBuffer.targetM2 = targetM2;
+	cmdBuffer.targetM2Steps = targetM2Steps;
   cmdBuffer.directionM2 = directionM2;
 }
 
@@ -255,21 +255,21 @@ void loop () {
 
     parseCommand(serialInputString);
 
-    Serial.println(cmdBuffer.targetM1);
+    Serial.println(cmdBuffer.targetM1Steps);
     Serial.println(cmdBuffer.targetM2);
 
     // Get target values
-    int targetM1 = cmdBuffer.targetM1;
-    int targetM2 = cmdBuffer.targetM2;
+    int targetM1Steps = cmdBuffer.targetM1Steps;
+    int targetM2Steps = cmdBuffer.targetM2Steps;
     // default base value
-    int basisValue = targetM2;
+    int basisValue = targetM2Steps;
     
     // calculate stepsPerStep
-    long stepsPerStep = targetM1 / targetM2;
+    long stepsPerStep = targetM1Steps / targetM2Steps;
     if (stepsPerStep < 1) {
-      // invert and set base to targetM1
-      stepsPerStep = targetM2 / targetM1; // 1 / stepsPerStep;
-      basisValue = targetM1;
+      // invert and set base to targetM1Steps
+      stepsPerStep = targetM2Steps / targetM1Steps; // 1 / stepsPerStep;
+      basisValue = targetM1Steps;
     }
 
     // Steps
@@ -282,13 +282,13 @@ void loop () {
 
     // calculate rest
     float rest = 0;
-    if (basisValue == targetM1) {
-      rest = targetM2 - (stepsPerStep * basisValue);
+    if (basisValue == targetM1Steps) {
+      rest = targetM2Steps - (stepsPerStep * basisValue);
 
       Serial.print("Rest: ");
       Serial.println(rest);
-    } else if (basisValue == targetM2) {
-      rest = targetM1 - (stepsPerStep * basisValue);
+    } else if (basisValue == targetM2Steps) {
+      rest = targetM1Steps - (stepsPerStep * basisValue);
       
       Serial.print("Rest: ");
       Serial.println(rest);
@@ -312,7 +312,7 @@ void loop () {
         currentRest = currentRest - currentRestStep;
       }
 
-      if (basisValue == targetM1) {
+      if (basisValue == targetM1Steps) {
         // Debug output
         Serial.print("Do ");
         Serial.print(stepsPerStep + currentRestStep);
@@ -321,7 +321,7 @@ void loop () {
         // Do x Steps on M2 per one step on M1
         stepperOne->step(1, cmdBuffer.directionM1, SINGLE);
         stepperTwo->step(stepsPerStep + currentRestStep, cmdBuffer.directionM2, SINGLE);
-      } else if (basisValue == targetM2) {
+      } else if (basisValue == targetM2Steps) {
         // Debug output
         Serial.print("Do ");
         Serial.print(stepsPerStep + currentRestStep);
