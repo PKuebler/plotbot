@@ -8,7 +8,7 @@
 // =============================
 // Distance
 // =============================
-#define AXIS_DISTANCE 6300 // mm = 150cm
+#define AXIS_DISTANCE 6000 // mm = 150cm
 #define START_X 3150 // 75cm
 #define START_Y 3150 // 75cm
 
