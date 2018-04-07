@@ -8,17 +8,17 @@
 // =============================
 // Distance
 // =============================
-#define AXIS_DISTANCE 6300 // mm = 150cm
-#define START_X 3150 // 75cm
-#define START_Y 3150 // 75cm
+#define AXIS_DISTANCE 6100 // mm = 61 cm
+#define START_X 3050 // 30,5 cm
+#define START_Y 5400 // 54 cm
 
 // =============================
 // MIN / MAX X/Y
 // =============================
-#define MIN_X 2000 // 40cm
-#define MIN_Y 2000 // 40cm
-#define MAX_X 5000 // 110cm
-#define MAX_Y 5000 // 110cm
+#define MIN_X 2000 // 20 cm
+#define MIN_Y 3000 // 30 cm
+#define MAX_X 5000 // 50 cm
+#define MAX_Y 8000 // 80 cm
 
 // =============================
 // PEN STATS
