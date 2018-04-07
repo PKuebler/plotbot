@@ -220,24 +220,29 @@ void parseCommand(String command) {
         case 'Y':
           y = value.toInt();
         break;
-        case 'E':
-          e = value.toInt();
-        break;
       }
       value = "";
-    } else if (c == 'G' || c == 'X' || c == 'Y' || c == 'E') {
+    } else if (c == 'G' || c == 'X' || c == 'Y') {
       // new
       prop = c;
     } else {
       value += c;
     }
   }
-
+  
   if (cmd == -1) {
     Serial.println("> Invalid Command: Code not found.");
     return;
   }
 
+  // Debug Output
+  Serial.print("#cmd ");
+  Serial.print(cmd);
+  Serial.print(" - x: ");
+  Serial.print(x);
+  Serial.print(", y: ");
+  Serial.print(y);
+  
   // reset min / max if nesseccary
   if (x < MIN_X) x = MIN_X;
   if (y < MIN_Y) y = MIN_Y;
@@ -251,8 +256,7 @@ void parseCommand(String command) {
   Serial.print(x);
   Serial.print(", y: ");
   Serial.print(y);
-  Serial.print(", e: ");
-  Serial.println(e);
+
 
   // Compute current (old) targetM1-steps and targetM2-steps
   long targetM1OldSteps = computeA(currentX, currentY) / m2s;
