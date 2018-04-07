@@ -263,30 +263,67 @@ void loop () {
     int basisValue = targetM2;
     
     // calculate stepsPerStep
-    double stepsPerStep = targetM1 / targetM2;
+    long stepsPerStep = targetM1 / targetM2;
     if (stepsPerStep < 1) {
       // invert and set base to a
       stepsPerStep = targetM2 / targetM1; // 1 / stepsPerStep;
       basisValue = targetM1;
     }
 
+    // Steps
+    Serial.print("Steps Basis: ");
+    Serial.println(basisValue);
+
+    // steps per BasisStep
+    Serial.print("Steps per BasisStep: ");
     Serial.println(stepsPerStep);
+
+    // calculate rest
+    float rest = 0;
+    if (basisValue == targetM1) {
+      rest = targetM2 - (stepsPerStep * basisValue);
+
+      Serial.print("Rest: ");
+      Serial.println(rest);
+    } else if (basisValue == targetM2) {
+      rest = targetM1 - (stepsPerStep * basisValue);
+      
+      Serial.print("Rest: ");
+      Serial.println(rest);
+    }
+
+    rest = rest / basisValue;
+
     // start drawing
+    float currentRest = 0;
     for (int i = 0; i < basisValue; i++) {
+      // rest
+      int currentRestStep = 0;
+
+      currentRest = currentRest + rest;
+
+      Serial.print("Current Rest ");
+      Serial.println(currentRest);
+      
+      if (currentRest > 1) {
+        currentRestStep = currentRest;
+        currentRest = currentRest - currentRestStep;
+      }
+
       if (basisValue == targetM1) {
         // Do x Steps on M2 per one step on M1
         Serial.print("Do ");
-        Serial.print(stepsPerStep);
+        Serial.print(stepsPerStep + currentRestStep);
         Serial.println(" Steps per one m1 step");
         stepperOne->step(1, cmdBuffer.directionM1, SINGLE);
-        stepperTwo->step(stepsPerStep, cmdBuffer.directionM2, SINGLE);
+        stepperTwo->step(stepsPerStep + currentRestStep, cmdBuffer.directionM2, SINGLE);
       } else if (basisValue == targetM2) {
         // Do x Steps on M1 per one step on M2
         Serial.print("Do ");
-        Serial.print(stepsPerStep);
+        Serial.print(stepsPerStep + currentRestStep);
         Serial.println(" Steps per one m2 step");
         stepperTwo->step(1, cmdBuffer.directionM2, SINGLE);
-        stepperOne->step(stepsPerStep, cmdBuffer.directionM1, SINGLE);
+        stepperOne->step(stepsPerStep + currentRestStep, cmdBuffer.directionM1, SINGLE);
       } else {
         Serial.println("Error: Base value was not matched.");
       }
