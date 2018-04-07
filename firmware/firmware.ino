@@ -119,7 +119,7 @@ float getRestPerBasisStep(int basisValue, long stepsPerStep, int targetM1Steps, 
 void drawLineToTargetPoint(int stepsPerStep, int basisValue, float restPerStep, command cmdBuffer) {
   // start drawing
   float currentRest = 0;
-  int targetSteps = stepsPerStep
+  int targetSteps = stepsPerStep;
 
   for (int i = 0; i < basisValue; i++) {
     // calculate current rest
