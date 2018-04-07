@@ -8,7 +8,7 @@
 // =============================
 // Distance
 // =============================
-#define AXIS_DISTANCE 9500 // mm = 150cm
+#define AXIS_DISTANCE 6000 // mm = 150cm
 #define START_X 3000 // 75cm
 #define START_Y 4750 // 75cm
 
@@ -91,8 +91,8 @@ int computeA(long x, long y) {
 }
   
 int computeB(long x, long y) {
-  long distanceY = AXIS_DISTANCE - y;
-  return sqrt(x * x + (distanceY * distanceY));
+  long distanceX = AXIS_DISTANCE - x;
+  return sqrt(y * y + (distanceX * distanceX));
 }
 
 float getRestPerBasisStep(int basisValue, long stepsPerStep, int targetM1Steps, int targetM2Steps) {
@@ -255,27 +255,40 @@ void parseCommand(String command) {
   Serial.print(" - x: ");
   Serial.print(x);
   Serial.print(", y: ");
-  Serial.print(y);
+  Serial.println(y);
 
 
   // Compute current (old) targetM1-steps and targetM2-steps
-  long targetM1OldSteps = computeA(currentX, currentY) / m2s;
-  long targetM2OldSteps = computeB(currentX, currentY) / m2s;
+  long targetM1Old = computeA(currentX, currentY);
+  long targetM2Old = computeB(currentX, currentY);
+  Serial.print("Old M1 ");
+  Serial.println(targetM1Old);
+  Serial.print("Old M2 ");
+  Serial.println(targetM2Old);
+  long targetM1OldSteps = targetM1Old / m2s;
+  long targetM2OldSteps = targetM2Old / m2s;
+
 
   // Compute new targetM1-steps and targetM2-steps
-  long targetM1Steps = computeA(x, y) / m2s;
-  long targetM2Steps = computeB(x, y) / m2s;
+  long targetM1 = computeA(x, y);
+  long targetM2 = computeB(x, y);
+  Serial.print("New M1 ");
+  Serial.println(targetM1);
+  Serial.print("New M2 ");
+  Serial.println(targetM2);
+  long targetM1Steps = targetM1 / m2s;
+  long targetM2Steps = targetM2 / m2s;
 
   targetM1Steps = targetM1Steps - targetM1OldSteps;
   targetM2Steps = targetM2Steps - targetM2OldSteps;
 
   // Direction
-  int directionM1 = FORWARD;
+  int directionM1 = BACKWARD;
   int directionM2 = BACKWARD;
 
   if (targetM1Steps < 0) {
     targetM1Steps = -targetM1Steps;
-    directionM1 = BACKWARD;
+    directionM1 = FORWARD;
   }
   if (targetM2Steps < 0) {
     targetM2Steps = -targetM2Steps;
