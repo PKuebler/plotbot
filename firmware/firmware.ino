@@ -91,8 +91,8 @@ int computeA(long x, long y) {
 }
   
 int computeB(long x, long y) {
-  long distanceX = AXIS_DISTANCE - x;
-  return sqrt((distanceX * distanceX) + y * y);
+  long distanceY = AXIS_DISTANCE - y;
+  return sqrt(x * x + (distanceY * distanceY));
 }
 
 float getRestPerBasisStep(int basisValue, long stepsPerStep, int targetM1Steps, int targetM2Steps) {
